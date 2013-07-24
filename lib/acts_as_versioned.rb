@@ -336,7 +336,7 @@ module ActiveRecord #:nodoc:
             define_method(new_model, col.name.to_sym)
             # This is iLab only version due to some internal specifics
             if ['created_by','updated_by'].include?(col.name) && (Rails.env != 'test')
-              new_model.send("#{col.name.to_sym}=", orig_model.send(col.name).id)
+              new_model.send("#{col.name.to_sym}=", (orig_model.send(col.name).id rescue 0))
             else
               new_model.send("#{col.name.to_sym}=", orig_model.send(col.name))
             end
