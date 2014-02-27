@@ -265,8 +265,12 @@ module ActiveRecord #:nodoc:
           has_many :versions, self.version_association_options
 
           before_save :set_new_version
-          after_save :save_version
+          after_save :save_version_later
           after_save :clear_old_versions
+        end
+
+        def save_version_later
+          self.delay.save_version()
         end
 
         # Saves a version of the model in the versioned table.  This is called in the after_save callback by default
