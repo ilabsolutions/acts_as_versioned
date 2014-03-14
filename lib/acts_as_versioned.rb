@@ -271,13 +271,13 @@ module ActiveRecord #:nodoc:
 
         def save_version_later
           if @saving_version
+            @saving_version = nil
             self.delay.save_version()
           end
         end
 
         # Saves a version of the model in the versioned table.  This is called in the after_save callback by default
         def save_version
-          @saving_version = nil
           rev = self.class.versioned_class.new
           clone_versioned_model(self, rev)
           rev.send("#{self.class.version_column}=", send(self.class.version_column))
