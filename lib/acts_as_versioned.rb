@@ -270,19 +270,19 @@ module ActiveRecord #:nodoc:
         end
 
         def save_version_later
-          self.delay.save_version()
+          if @saving_version
+            self.delay.save_version()
+          end
         end
 
         # Saves a version of the model in the versioned table.  This is called in the after_save callback by default
         def save_version
-          if @saving_version
-            @saving_version = nil
-            rev = self.class.versioned_class.new
-            clone_versioned_model(self, rev)
-            rev.send("#{self.class.version_column}=", send(self.class.version_column))
-            rev.send("#{self.class.versioned_foreign_key}=", id)
-            rev.save
-          end
+          @saving_version = nil
+          rev = self.class.versioned_class.new
+          clone_versioned_model(self, rev)
+          rev.send("#{self.class.version_column}=", send(self.class.version_column))
+          rev.send("#{self.class.versioned_foreign_key}=", id)
+          rev.save
         end
 
         # Clears old revisions if a limit is set with the :limit option in <tt>acts_as_versioned</tt>.
