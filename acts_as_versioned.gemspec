@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = "acts_as_versioned"
-  s.version = "3.2.1"
+  s.name = "acts_as_versioned_jw"
+  s.version = "3.2.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jason Whitehorn"]
-  s.date = "2013-05-03"
+  s.date = "2014-04-25"
   s.description = "Active Record model versioning"
   s.email = "jason.whitehorn@gmail.com"
   s.extra_rdoc_files = ["README.md", "lib/acts_as_versioned.rb"]
