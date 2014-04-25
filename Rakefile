@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rake'
 require 'echoe'
 
-Echoe.new('acts_as_versioned_jw', '3.2.2') do |p|
+Echoe.new('acts_as_versioned_jw', '3.2.3') do |p|
   p.description     = "Active Record model versioning"
   p.url             = "http://github.com/jwhitehorn/acts_as_versioned"
   p.author          = "Jason Whitehorn"
