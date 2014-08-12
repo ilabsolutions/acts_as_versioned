@@ -272,7 +272,7 @@ module ActiveRecord #:nodoc:
         def save_version_later
           if @saving_version
             @saving_version = nil
-            self.delay.save_version()
+            self.delay(priority: 10).save_version()
           end
         end
 
