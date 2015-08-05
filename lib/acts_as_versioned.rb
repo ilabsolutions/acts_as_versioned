@@ -339,8 +339,8 @@ module ActiveRecord #:nodoc:
             next unless orig_model.has_attribute?(col.name)
             define_method(new_model, col.name.to_sym)
             # This is iLab only version due to some internal specifics
-            if ['created_by','updated_by'].include?(col.name) #&& (Rails.env != 'test')
-              new_model.attributes[col.name] = (orig_model.attributes[col.name].id rescue 0)
+            if ['created_by','updated_by'].include?(col.name)
+              new_model.attributes[col.name] = orig_model.attributes[col.name]
             else
               new_model.send("#{col.name.to_sym}=", orig_model.send(col.name))
             end
