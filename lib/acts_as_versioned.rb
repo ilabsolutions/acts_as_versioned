@@ -165,8 +165,8 @@ module ActiveRecord #:nodoc:
         return if self.included_modules.include?(ActiveRecord::Acts::Versioned::Behaviors)
 
         cattr_accessor :versioned_class_name, :versioned_foreign_key, :versioned_table_name, :versioned_inheritance_column,
-                       :version_column, :max_version_limit, :track_altered_attributes, :version_condition, :version_sequence_name, :non_versioned_columns,
-                       :version_association_options, :version_if_changed, :version_except_columns
+          :version_column, :max_version_limit, :track_altered_attributes, :version_condition, :version_sequence_name, :non_versioned_columns,
+          :version_association_options, :version_if_changed
 
         self.versioned_class_name         = options[:class_name] || "Version"
         self.versioned_foreign_key        = options[:foreign_key] || self.to_s.foreign_key
@@ -176,12 +176,11 @@ module ActiveRecord #:nodoc:
         self.version_sequence_name        = options[:sequence_name]
         self.max_version_limit            = options[:limit].to_i
         self.version_condition            = options[:if] || true
-        self.version_except_columns       = [options[:except]].flatten.map(&:to_s)  #these columns are kept in _versioned, but changing them does not excplitly cause a version change
-        self.non_versioned_columns        = [self.primary_key, inheritance_column, self.version_column, 'lock_version', versioned_inheritance_column] #these columns are excluded from _versions, and changing them does not cause a version change
+        self.non_versioned_columns        = [self.primary_key, inheritance_column, self.version_column, 'lock_version', versioned_inheritance_column] + options[:non_versioned_columns].to_a.map(&:to_s)
         self.version_association_options  = {
-                                                    :class_name  => "#{self.to_s}::#{versioned_class_name}",
-                                                    :foreign_key => versioned_foreign_key,
-                                                    :dependent   => :delete_all
+          :class_name  => "#{self.to_s}::#{versioned_class_name}",
+          :foreign_key => versioned_foreign_key,
+          :dependent   => :delete_all
         }.merge(options[:association_options] || {})
 
         if block_given?
@@ -214,15 +213,15 @@ module ActiveRecord #:nodoc:
           # find first version before the given version
           def self.before(version)
             where(["#{original_class.versioned_foreign_key} = ? and version < ?", version.send(original_class.versioned_foreign_key), version.version]).
-                    order('version DESC').
-                    first
+              order('version DESC').
+              first
           end
 
           # find first version after the given version.
           def self.after(version)
             where(["#{original_class.versioned_foreign_key} = ? and version > ?", version.send(original_class.versioned_foreign_key), version.version]).
-                    order('version ASC').
-                    first
+              order('version ASC').
+              first
           end
 
           # finds earliest version of this record
@@ -252,10 +251,10 @@ module ActiveRecord #:nodoc:
         versioned_class.original_class = self
         versioned_class.table_name = versioned_table_name
         versioned_class.belongs_to self.to_s.demodulize.underscore.to_sym,
-                                   :class_name  => "::#{self.to_s}",
-                                   :foreign_key => versioned_foreign_key
-        versioned_class.send :include, options[:extend] if options[:extend].is_a?(Module)
-        versioned_class.set_sequence_name version_sequence_name if version_sequence_name
+          :class_name  => "::#{self.to_s}",
+          :foreign_key => versioned_foreign_key
+          versioned_class.send :include, options[:extend] if options[:extend].is_a?(Module)
+          versioned_class.sequence_name = version_sequence_name if version_sequence_name
       end
 
       module Behaviors
@@ -330,35 +329,24 @@ module ActiveRecord #:nodoc:
         end
 
         def altered?
-          changed.map { |c| self.class.versioned_columns.map(&:name).include?(c) & !self.class.version_except_columns.include?(c) }.any?
+          track_altered_attributes ? (version_if_changed - changed).length < version_if_changed.length : changed?
         end
 
         # Clones a model.  Used when saving a new version or reverting a model's version.
         def clone_versioned_model(orig_model, new_model)
           self.class.versioned_columns.each do |col|
-            next unless orig_model.has_attribute?(col.name)
-            define_method(new_model, col.name.to_sym)
-            # This is iLab only version due to some internal specifics
-            if ['created_by','updated_by'].include?(col.name)
-              new_model.attributes[col.name] = orig_model.attributes[col.name]
-            else
-              new_model.send("#{col.name.to_sym}=", orig_model.send(col.name))
-            end
+            new_model[col.name] = orig_model.send(col.name) if orig_model.has_attribute?(col.name)
           end
 
-          if orig_model.is_a?(self.class.versioned_class)
-            new_model[new_model.class.inheritance_column] = orig_model[self.class.versioned_inheritance_column]
-          elsif new_model.is_a?(self.class.versioned_class)
-            sym = self.class.versioned_inheritance_column.to_sym
-            define_method new_model, sym
-            new_model.send("#{sym}=", orig_model[orig_model.class.inheritance_column]) if orig_model[orig_model.class.inheritance_column]
-          end
+          clone_inheritance_column(orig_model, new_model)
         end
 
-        def define_method(object, method)
-          return if object.methods.include? method
-          metaclass = class << object; self; end
-          metaclass.send :attr_accessor, method
+        def clone_inheritance_column(orig_model, new_model)
+          if orig_model.is_a?(self.class.versioned_class) && new_model.class.column_names.include?(new_model.class.inheritance_column.to_s)
+            new_model[new_model.class.inheritance_column] = orig_model[self.class.versioned_inheritance_column]
+          elsif new_model.is_a?(self.class.versioned_class) && new_model.class.column_names.include?(self.class.versioned_inheritance_column.to_s)
+            new_model[self.class.versioned_inheritance_column] = orig_model[orig_model.class.inheritance_column]
+          end
         end
 
         # Checks whether a new version shall be saved or not.  Calls <tt>version_condition_met?</tt> and <tt>changed?</tt>.
@@ -370,12 +358,12 @@ module ActiveRecord #:nodoc:
         # custom version condition checking.
         def version_condition_met?
           case
-            when version_condition.is_a?(Symbol)
-              send(version_condition)
-            when version_condition.respond_to?(:call) && (version_condition.arity == 1 || version_condition.arity == -1)
-              version_condition.call(self)
-            else
-              version_condition
+          when version_condition.is_a?(Symbol)
+            send(version_condition)
+          when version_condition.respond_to?(:call) && (version_condition.arity == 1 || version_condition.arity == -1)
+            version_condition.call(self)
+          else
+            version_condition
           end
         end
 
@@ -416,7 +404,6 @@ module ActiveRecord #:nodoc:
           (new_record? ? 0 : versions.calculate(:maximum, version_column).to_i) + 1
         end
 
-
         module ClassMethods
           # Returns an array of columns that are versioned.  See non_versioned_columns
           def versioned_columns
@@ -445,23 +432,21 @@ module ActiveRecord #:nodoc:
 
             self.versioned_columns.each do |col|
               self.connection.add_column versioned_table_name, col.name, col.type,
-                                         :limit     => col.limit,
-                                         :default   => col.default,
-                                         :scale     => col.scale,
-                                         :precision => col.precision
+                :limit     => col.limit,
+                :default   => col.default,
+                :scale     => col.scale,
+                :precision => col.precision
             end
 
             if type_col = self.columns_hash[inheritance_column]
               self.connection.add_column versioned_table_name, versioned_inheritance_column, type_col.type,
-                                         :limit     => type_col.limit,
-                                         :default   => type_col.default,
-                                         :scale     => type_col.scale,
-                                         :precision => type_col.precision
+                :limit     => type_col.limit,
+                :default   => type_col.default,
+                :scale     => type_col.scale,
+                :precision => type_col.precision
             end
 
-            name = 'index_' + versioned_table_name + '_on_' + versioned_foreign_key
-            self.connection.add_index versioned_table_name, versioned_foreign_key, :name => name[0,63]
-
+            self.connection.add_index versioned_table_name, versioned_foreign_key
           end
 
           # Rake migration task to drop the versioned table
