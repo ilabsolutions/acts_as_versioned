@@ -340,7 +340,7 @@ module ActiveRecord #:nodoc:
               if orig_model.send(col.name).is_a? Profile
                 new_model[col.name] = orig_model.send(col.name).id
               else
-                new_model[col.name] = orig_model.send(col.name)
+                new_model[col.name] = orig_model.send(col.name) || 0
               end
             end
           end
