@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = "acts_as_versioned"
-  s.version = "3.2.7"
+  s.version = "3.2.8"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jason Whitehorn", 'Pavel S']

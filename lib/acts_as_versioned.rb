@@ -336,7 +336,13 @@ module ActiveRecord #:nodoc:
         def clone_versioned_model(orig_model, new_model)
           self.class.versioned_columns.each do |col|
             new_model[col.name] = orig_model.send(col.name) if orig_model.has_attribute?(col.name)
-            new_model[col.name] = orig_model.send(col.name).id if ['updated_by', 'created_by'].include?(col.name)
+            if ['updated_by', 'created_by'].include?(col.name)
+              if orig_model.send(col.name).is_a? Profile
+                new_model[col.name] = orig_model.send(col.name).id
+              else
+                new_model[col.name] = orig_model.send(col.name)
+              end
+            end
           end
 
           clone_inheritance_column(orig_model, new_model)
