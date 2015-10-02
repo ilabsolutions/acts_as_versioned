@@ -250,7 +250,7 @@ module ActiveRecord #:nodoc:
         versioned_class.original_class = self
         versioned_class.table_name = versioned_table_name
         association_name = self.to_s.demodulize.underscore
-        association_name += '_' if 'association' == acssociation_name
+        association_name += '_' if 'association' == association_name
         versioned_class.belongs_to association_name.to_sym,
           :class_name  => "::#{self.to_s}",
           :foreign_key => versioned_foreign_key
