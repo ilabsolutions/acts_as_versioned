@@ -249,7 +249,9 @@ module ActiveRecord #:nodoc:
         versioned_class.cattr_accessor :original_class
         versioned_class.original_class = self
         versioned_class.table_name = versioned_table_name
-        versioned_class.belongs_to self.to_s.demodulize.underscore.to_sym,
+        association_name = self.to_s.demodulize.underscore
+        association_name += '_' if 'association' == acssociation_name
+        versioned_class.belongs_to association_name.to_sym,
           :class_name  => "::#{self.to_s}",
           :foreign_key => versioned_foreign_key
           versioned_class.send :include, options[:extend] if options[:extend].is_a?(Module)
