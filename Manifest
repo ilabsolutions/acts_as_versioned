@@ -5,7 +5,6 @@ Manifest
 README.md
 RUNNING_UNIT_TESTS
 Rakefile
-acts_as_versioned.gemspec
-acts_as_versioned_plugin.sqlite3.db
+acts_as_versioned_jw.gemspec
 init.rb
 lib/acts_as_versioned.rb

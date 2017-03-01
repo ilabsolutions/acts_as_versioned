@@ -1,14 +1,14 @@
 ## About ##
 =====
 This version  is iLab only, and probably would break your application under some circumstances
-acts_as_versioned is a gem for Rails 3.1 & 3.2 to enable easy versioning of models. As a versioned model is updated revisions are kept in a seperate table, providing a record of what changed.
+acts_as_versioned is a gem for Rails 3.1, 3.2 & 4 to enable easy versioning of models. As a versioned model is updated revisions are kept in a seperate table, providing a record of what changed.
 
 ## Getting Started ##
 =====
 
 In your Gemfile simply include:
 
-    gem 'acts_as_versioned', :git => 'https://github.com/jwhitehorn/acts_as_versioned.git'
+    gem 'acts_as_versioned_jw', '~> 3.2.2'
 
 The next time you run `bundle install` you'll be all set to start using acts_as_versioned.
 
