@@ -205,6 +205,9 @@ module ActiveRecord #:nodoc:
         # Create the dynamic versioned model
         #
         const_set(versioned_class_name, Class.new(ActiveRecord::Base)).class_eval do
+          # turn off STI for dynamic Model::Version classes
+          self.inheritance_column = nil
+
           def self.reloadable?;
             false;
           end
